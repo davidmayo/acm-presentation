@@ -18,24 +18,24 @@ N           1
 #  instamesh routing table
 Dest    cost    next hop    next hop cost
 ----    ----    --------    -------------
-A       3        D           1
-B       4        D           1
-C       2        D           1
-D       1        D           1
-E       1        E           1
-F       2        E           1
-G       3        D           1
-H       1        H           1
-J       2        E           1
-K       2        L           1
-L       1        L           1
-M       1        M           1
-N       1        N           1
-O       2        N           1
-P       2        L           1
-Q       2        M           1
-R       2        M           1
-S       2        N           1
+A       3       D           1
+B       4       D           1
+C       2       D           1
+D       1       D           1
+E       1       E           1
+F       2       E           1
+G       3       D           1
+H       1       H           1
+J       2       E           1
+K       2       L           1
+L       1       L           1
+M       1       M           1
+N       1       N           1
+O       2       N           1
+P       2       L           1
+Q       2       M           1
+R       2       M           1
+S       2       N           1
 
 #  Miscellaneous
 Some kind of section that we can't parse

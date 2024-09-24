@@ -176,7 +176,7 @@ for letter in adjacency_list:
             if not value.reachable:
                 continue
             file.write(
-                f"{key}       {value.total_cost}        {value.next_hop_node}           {value.next_hop_cost}\n"
+                f"{key}       {value.total_cost}       {value.next_hop_node}           {value.next_hop_cost}\n"
             )
         file.write(f"\n")
         file.write(f"#  Miscellaneous\n")

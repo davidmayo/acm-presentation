@@ -14,24 +14,24 @@ S           1
 #  instamesh routing table
 Dest    cost    next hop    next hop cost
 ----    ----    --------    -------------
-A       5        J           1
-B       6        J           1
-C       4        J           1
-D       3        J           1
-E       2        J           1
-F       2        J           1
-G       5        J           1
-H       3        N           1
-I       2        N           1
-J       1        J           1
-K       4        N           1
-L       3        N           1
-M       2        N           1
-N       1        N           1
-P       3        N           1
-Q       3        N           1
-R       2        S           1
-S       1        S           1
+A       5       J           1
+B       6       J           1
+C       4       J           1
+D       3       J           1
+E       2       J           1
+F       2       J           1
+G       5       J           1
+H       3       N           1
+I       2       N           1
+J       1       J           1
+K       4       N           1
+L       3       N           1
+M       2       N           1
+N       1       N           1
+P       3       N           1
+Q       3       N           1
+R       2       S           1
+S       1       S           1
 
 #  Miscellaneous
 Some kind of section that we can't parse
