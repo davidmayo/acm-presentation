@@ -37,38 +37,29 @@ class ParsedSection:
 class ParsedSectionLogTime(ParsedSection):
     timestamp: datetime.datetime | None = dataclasses.field(default=None)
     def parse_section_data(self) -> None:
-        try:
-            self.timestamp = datetime.datetime.fromisoformat(self.text.strip())
-        except:
-            pass
+        self.timestamp = datetime.datetime.fromisoformat(self.text.strip())
 
 
 @dataclasses.dataclass
 class ParsedSectionSerialNumber(ParsedSection):
     serial: str | None = dataclasses.field(default=None)
     def parse_section_data(self) -> None:
-        try:
-            self.serial = self.text.strip()
-        except:
-            pass
+        self.serial = self.text.strip()
 
 
 @dataclasses.dataclass
 class ParsedSectionInstameshNeighbors(ParsedSection):
     neighbors: dict[str, InstameshNeighborEntry] | None = dataclasses.field(default=None)
     def parse_section_data(self) -> None:
-        try:
-            self.neighbors = {}
-            for line in self.text.splitlines():
-                if not line or line.startswith("neighbor") or line.startswith("----"):
-                    continue
-                destination_token, cost_token = line.split()
-                self.neighbors[destination_token] = InstameshNeighborEntry(
-                    destination=destination_token,
-                    cost=int(cost_token)
-                )
-        except:
-            pass
+        self.neighbors = {}
+        for line in self.text.splitlines():
+            if not line or line.startswith("neighbor") or line.startswith("----"):
+                continue
+            destination_token, cost_token = line.split()
+            self.neighbors[destination_token] = InstameshNeighborEntry(
+                destination=destination_token,
+                cost=int(cost_token)
+            )
 
 
 @dataclasses.dataclass
@@ -76,23 +67,19 @@ class ParsedSectionInstameshRoutingTable(ParsedSection):
     entries: dict[str, InstameshRoutingTableEntry] | None = dataclasses.field(default=None)
 
     def parse_section_data(self) -> None:
-        try:
-            self.entries = {}
-            for line in self.text.splitlines():
-                if not line or line.startswith("Dest") or line.startswith("----"):
-                    continue
-                destination_token, cost_token, next_hop_token, next_hop_cost_token = line.split()
-                self.entries[destination_token] = InstameshRoutingTableEntry(
-                    destination=destination_token,
-                    total_cost=int(cost_token),
-                    next_hop_cost=int(next_hop_cost_token),
-                    next_hop_node=next_hop_token,
-                    reachable=True,
-                )
-            pass
-        except:
-            raise
-            pass
+        self.entries = {}
+        for line in self.text.splitlines():
+            if not line or line.startswith("Dest") or line.startswith("----"):
+                continue
+            destination_token, cost_token, next_hop_token, next_hop_cost_token = line.split()
+            self.entries[destination_token] = InstameshRoutingTableEntry(
+                destination=destination_token,
+                total_cost=int(cost_token),
+                next_hop_cost=int(next_hop_cost_token),
+                next_hop_node=next_hop_token,
+                reachable=True,
+            )
+        pass
 
 
 def parse_section(
