@@ -1,0 +1,37 @@
+#  breadcrumb log time
+2024-09-23 12:02:30
+
+#  breadcrumb serial number
+K
+
+#  instamesh neighbors
+neighbor    cost
+--------    ----
+G           1
+L           1
+
+#  instamesh routing table
+Dest    cost    next hop    next hop cost
+----    ----    --------    -------------
+A       3        G           1
+B       2        G           1
+C       2        G           1
+D       3        G           1
+E       3        L           1
+F       4        L           1
+G       1        G           1
+H       2        L           1
+I       2        L           1
+J       4        L           1
+L       1        L           1
+M       2        L           1
+N       3        L           1
+O       4        L           1
+P       2        L           1
+Q       3        L           1
+R       3        L           1
+S       4        L           1
+
+#  Miscellaneous
+Some kind of section that we can't parse
+in any meaningful way.
