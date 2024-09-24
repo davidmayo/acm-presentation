@@ -1,0 +1,31 @@
+[project]
+name = "acm-presentation"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "rich>=13.8.1",
+]
+
+[tool.ruff]
+target-version = "py312"
+exclude = []
+[tool.ruff.lint]
+ignore = [
+    "F541", # f-string without any placeholders
+    # "F401", # {thing} imported but unused
+    # "F841", # Local variable `{thing}` is assigned to but never used
+    # "E401", # Multiple imports on one line
+    # "E402", # Module level import not at top of file
+    "E722", # Do not use bare `except`
+]
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+    # "F403", # `from {thing} import *` used; unable to detect undefined names
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.6.7",
+]
