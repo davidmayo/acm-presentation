@@ -10,7 +10,7 @@ class ParsedSnapshot:
         self.parsed_logs: dict[str, ParsedLog] = {}
         for log_path in self.log_paths:
             parsed_log = ParsedLog(log_path)
-            serial = parsed_log.get_serial_number()
+            serial = parsed_log.serial_number
             if not serial:
                 continue
             self.parsed_logs[serial] = parsed_log
@@ -20,7 +20,7 @@ class ParsedSnapshot:
         path = []
         while source != destination:
             source_parsed_log = self.parsed_logs[source]
-            source_routing_table = source_parsed_log.get_instamesh_routing_table()
+            source_routing_table = source_parsed_log.instamesh_routing_table
             assert source_routing_table
             next_hop = source_routing_table[destination]
             if debug:
@@ -32,8 +32,12 @@ class ParsedSnapshot:
 
 
 if __name__ == "__main__":
+    from rich.pretty import pprint
     path = Path(__file__).parent / "logs"
     parsed_snapshot = ParsedSnapshot(path)
-    print(f"{list(parsed_snapshot.parsed_logs)=}")
+    print("list(parsed_snapshot.parsed_logs)=")
+    pprint(list(parsed_snapshot.parsed_logs))
 
-    print(f"{parsed_snapshot.trace_route('A', 'M', debug=True)=}")
+    print()
+    print("{parsed_snapshot.trace_route('A', 'M', debug=False)=")
+    pprint(parsed_snapshot.trace_route('A', 'M', debug=False))

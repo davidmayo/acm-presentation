@@ -1,5 +1,6 @@
 import dataclasses
 import datetime
+import functools
 from pathlib import Path
 
 
@@ -104,7 +105,9 @@ def parse_section(
 
 class ParsedLog:
     """
-    A parsed breadcrumb log file
+    A parsed breadcrumb log file.
+
+    Parsed data is in the `.parsed_sections` dict, 
     """
     def __init__(self, path: Path) -> None:
         self.path = path
@@ -112,24 +115,27 @@ class ParsedLog:
         self.parsed_sections: dict[str, ParsedSection] = {}
         self._parse_all_sections()
 
-    def get_serial_number(self) -> str | None:
+    @functools.cached_property
+    def serial_number(self) -> str | None:
         for value in self.parsed_sections.values():
             if isinstance(value, ParsedSectionSerialNumber):
                 return value.serial
         return None
     
-    def get_instamesh_neighbors(self) -> dict[str, InstameshNeighborEntry] | None:
+    @functools.cached_property
+    def instamesh_neighbors(self) -> dict[str, InstameshNeighborEntry] | None:
         for value in self.parsed_sections.values():
             if isinstance(value, ParsedSectionInstameshNeighbors):
                 return value.neighbors
         return None
     
-    def get_instamesh_routing_table(self) -> dict[str, InstameshRoutingTableEntry] | None:
+    @functools.cached_property
+    def instamesh_routing_table(self) -> dict[str, InstameshRoutingTableEntry] | None:
         for value in self.parsed_sections.values():
             if isinstance(value, ParsedSectionInstameshRoutingTable):
                 return value.entries
         return None
-
+    
     def _parse_all_sections(self):
         def finalize_section(section_lines: list[str]):
             if section_lines:
@@ -156,11 +162,11 @@ class ParsedLog:
 if __name__ == "__main__":
     from rich.pretty import pprint
     log_folder_path = Path(__file__).parent / "logs"
-    log_file_paths = sorted(log_folder_path.rglob("*.log"))
+    log_file_paths = sorted(log_folder_path.glob("*.log"))
     log_file_path = log_file_paths[0]
     parsed_log = ParsedLog(log_file_path)
-    # pprint(parsed_log.path)
+    pprint(parsed_log.path)
     pprint(parsed_log.parsed_sections)
-    pprint(f"{parsed_log.get_serial_number()=}")
-    pprint(parsed_log.get_instamesh_neighbors())
-    pprint(parsed_log.get_instamesh_routing_table())
+    pprint(f"{parsed_log.serial_number=}")
+    pprint(parsed_log.instamesh_neighbors)
+    pprint(parsed_log.instamesh_routing_table)
