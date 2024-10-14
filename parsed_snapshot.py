@@ -15,7 +15,9 @@ class ParsedSnapshot:
                 continue
             self.parsed_logs[serial] = parsed_log
 
-    def trace_route(self, source: str, destination: str, *, debug: bool = False) -> list[InstameshRoutingTableEntry]:
+    def trace_route(
+        self, source: str, destination: str, *, debug: bool = False
+    ) -> list[InstameshRoutingTableEntry]:
         hop_count = 0
         path = []
         while source != destination:
@@ -33,6 +35,7 @@ class ParsedSnapshot:
 
 if __name__ == "__main__":
     from rich.pretty import pprint
+
     path = Path(__file__).parent / "logs"
     parsed_snapshot = ParsedSnapshot(path)
     print("list(parsed_snapshot.parsed_logs)=")
@@ -40,4 +43,4 @@ if __name__ == "__main__":
 
     print()
     print("{parsed_snapshot.trace_route('A', 'M', debug=False)=")
-    pprint(parsed_snapshot.trace_route('A', 'M', debug=False))
+    pprint(parsed_snapshot.trace_route("A", "M", debug=False))

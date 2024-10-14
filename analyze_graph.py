@@ -3,7 +3,9 @@ import itertools
 from parsed_snapshot import ParsedSnapshot
 
 
-def find_all_paths(parsed_snapshot: ParsedSnapshot) -> dict[tuple[str, str], tuple[str, ...]]:
+def find_all_paths(
+    parsed_snapshot: ParsedSnapshot,
+) -> dict[tuple[str, str], tuple[str, ...]]:
     """Find all the active instamesh routing paths, considering all possible `(source, destination)` pairs
 
     Return value is a mapping of `(source, destination)` pairs to tuples of hop nodes, including source and destination
@@ -43,7 +45,7 @@ def find_all_paths(parsed_snapshot: ParsedSnapshot) -> dict[tuple[str, str], tup
             destination=destination,
         )
         path_nodes = [source] + [x.next_hop_node for x in path]
-        paths[(source, destination)] = (tuple(path_nodes))
+        paths[(source, destination)] = tuple(path_nodes)
     return paths
 
 
@@ -54,20 +56,20 @@ def find_waypoint_nodes(parsed_snapshot: ParsedSnapshot):
 
     for (src, dest), path_nodes in find_all_paths(parsed_snapshot).items():
         if len(path_nodes) > 2:
-            waypoint_nodes = path_nodes[1 : -1]
+            waypoint_nodes = path_nodes[1:-1]
         else:
             waypoint_nodes = []
         for waypoint_node in waypoint_nodes:
             counter[waypoint_node] += 1
-        
+
         print(f"{path_nodes=} {waypoint_nodes=}")
     return counter
-
 
 
 if __name__ == "__main__":
     from pathlib import Path
     from rich.pretty import pprint
+
     parsed_snapshot = ParsedSnapshot(Path(__file__).parent / "logs")
     waypoint_nodes = find_waypoint_nodes(parsed_snapshot)
     print(f"waypoint_nodes=")

@@ -83,9 +83,6 @@ adjacency_list = create_adjacency_list(edge_list)
 print(adjacency_list)
 
 
-
-
-
 # Just copied from
 # https://datagy.io/dijkstras-algorithm-python/#Implementing_Dijkstras_Algorithm_in_Python
 # With "next hop" logic bolted on
@@ -182,4 +179,3 @@ for letter in adjacency_list:
         file.write(f"#  Miscellaneous\n")
         file.write(f"Some kind of section that we can't parse\n")
         file.write(f"in any meaningful way.\n")
-
