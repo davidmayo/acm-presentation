@@ -103,6 +103,9 @@ def parse_section(
 
 
 class ParsedLog:
+    """
+    A parsed breadcrumb log file
+    """
     def __init__(self, path: Path) -> None:
         self.path = path
         self.raw_text = path.read_text()
