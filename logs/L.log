@@ -17,7 +17,7 @@ P           1
 Dest    cost    next hop    next hop cost
 ----    ----    --------    -------------
 A       3       H           1
-B       3       K           1
+B       3       H           1
 C       2       H           1
 D       2       H           1
 E       2       I           1

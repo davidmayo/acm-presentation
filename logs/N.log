@@ -18,7 +18,7 @@ S           1
 Dest    cost    next hop    next hop cost
 ----    ----    --------    -------------
 A       4       E           1
-B       5       E           1
+B       4       E           1
 C       3       E           1
 D       2       E           1
 E       1       E           1

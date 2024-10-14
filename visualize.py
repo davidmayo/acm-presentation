@@ -1,8 +1,48 @@
 import plotly.graph_objects as go
 import networkx as nx
 
+import parsed_snapshot
 
-G = nx.random_geometric_graph(200, 0.125)
+
+_IMAGE_WIDTH = 922
+_IMAGE_HEIGHT = 573
+positions = {
+    "A": (76, 42),
+    "B": (107, 135),
+    "C": (248, 138),
+    "D": (317, 114),
+    "E": (564, 111),
+    "F": (837, 40),
+    "G": (198, 232),
+    "H": (320, 187),
+    "I": (449, 195),
+    "J": (733, 167),
+    "K": (161, 340),
+    "L": (340, 371),
+    "M": (475, 361),
+    "N": (583, 291),
+    "O": (851, 310),
+    "P": (341, 496),
+    "Q": (547, 442),
+    "R": (823, 528),
+    "S": (868, 455),
+}
+positions = {
+    k: (v[0] / _IMAGE_WIDTH, 1 - v[1] / _IMAGE_HEIGHT) for k, v in positions.items()
+}
+
+
+G = nx.random_geometric_graph(200, 0.125, seed=40351)
+
+snap = parsed_snapshot.ParsedSnapshot("./logs")
+print(snap)
+
+G = snap.networkx_graph()
+for node in G.nodes:
+    G.nodes[node]["pos"] = positions[node]
+
+# exit()
+
 
 print(G)
 
@@ -18,10 +58,15 @@ for edge in G.edges():
     edge_y.append(y1)
     edge_y.append(None)
 
+from rich.pretty import pprint
+
+pprint(edge_x)
+# exit()
+
 edge_trace = go.Scatter(
     x=edge_x,
     y=edge_y,
-    line=dict(width=0.5, color="#888"),
+    line={"width": 2.5, "color": "#888"},
     hoverinfo="none",
     mode="lines",
 )
@@ -60,18 +105,21 @@ node_adjacencies = []
 node_text = []
 for node, adjacencies in enumerate(G.adjacency()):
     node_adjacencies.append(len(adjacencies[1]))
-    node_text.append("# of connections: " + str(len(adjacencies[1])))
+    node_text.append(f"# of connections: " + str(len(adjacencies[1])))
 
 node_trace.marker.color = node_adjacencies
 node_trace.text = node_text
 
 
 fig = go.Figure(
-    data=[edge_trace, node_trace],
+    data=[
+        edge_trace,
+        node_trace,
+    ],
     layout=go.Layout(
         title="Network graph made with Python",
         titlefont_size=16,
-        showlegend=False,
+        showlegend=True,
         hovermode="closest",
         margin=dict(b=20, l=5, r=5, t=40),
         annotations=[

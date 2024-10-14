@@ -20,6 +20,7 @@ peer_pairs = [
     "AB",
     "AC",
     "BG",
+    "BC",
     "CD",
     "CG",
     "CH",

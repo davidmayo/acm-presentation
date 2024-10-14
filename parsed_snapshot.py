@@ -1,12 +1,16 @@
 from pathlib import Path
+import random
+
+from matplotlib import pyplot as plt
+import networkx as nx
 
 from parsed_log import InstameshRoutingTableEntry, ParsedLog
 
 
 class ParsedSnapshot:
     def __init__(self, path: Path):
-        self.path = path
-        self.log_paths = sorted(path.glob("*.log"))
+        self.path = Path(path).expanduser().resolve()
+        self.log_paths = sorted(self.path.glob("*.log"))
         self.parsed_logs: dict[str, ParsedLog] = {}
         for log_path in self.log_paths:
             parsed_log = ParsedLog(log_path)
@@ -14,6 +18,13 @@ class ParsedSnapshot:
             if not serial:
                 continue
             self.parsed_logs[serial] = parsed_log
+
+    def networkx_graph(self) -> nx.Graph:
+        graph = nx.Graph()
+        for serial, parsed_log in self.parsed_logs.items():
+            for neighbor_serial in parsed_log.instamesh_neighbors:
+                graph.add_edge(serial, neighbor_serial)
+        return graph
 
     def trace_route(
         self, source: str, destination: str, *, debug: bool = False
@@ -44,3 +55,55 @@ if __name__ == "__main__":
     print()
     print("{parsed_snapshot.trace_route('A', 'M', debug=False)=")
     pprint(parsed_snapshot.trace_route("A", "M", debug=False))
+
+    graph = parsed_snapshot.networkx_graph()
+    # graph = nx.random_geometric_graph(50, 0.125, seed=40351,)
+
+    print(f"{graph=!s}")
+    print(f"{graph=!r}")
+
+    # nx.draw(graph)
+    # plt.show()
+
+    random.seed(40351)
+    for edge_index, edge in enumerate(graph.edges):
+        # print(edge_index, edge)
+        node0 = graph.nodes[edge[0]]
+        if "pos" not in node0:
+            node0["pos"] = [random.random(), random.random()]
+
+        node1 = graph.nodes[edge[1]]
+        if "pos" not in node1:
+            node1["pos"] = [random.random(), random.random()]
+        # pos = nodes[0]["pos"]
+        print(f"{edge_index=} {edge=} {node0=} {type(node0)=}")
+
+    # nx.draw(graph)
+    positions = {
+        "A": (76, 42),
+        "B": (107, 135),
+        "C": (248, 138),
+        "D": (317, 114),
+        "E": (564, 111),
+        "F": (837, 40),
+        "G": (198, 232),
+        "H": (320, 187),
+        "I": (449, 195),
+        "J": (733, 167),
+        "K": (161, 340),
+        "L": (340, 371),
+        "M": (475, 361),
+        "N": (583, 291),
+        "O": (851, 310),
+        "P": (341, 496),
+        "Q": (547, 442),
+        "R": (823, 528),
+        "S": (868, 455),
+    }
+    positions = {k: (v[0] / 922, (573 - v[1]) / 573) for k, v in positions.items()}
+    for n in graph.nodes:
+        print(f"{n=} {graph.nodes[n] = }")
+
+    nx.draw_networkx(graph, pos=positions)
+    plt.show()
+    print(graph.nodes["R"])
