@@ -65,6 +65,7 @@ def find_waypoint_nodes(parsed_snapshot: ParsedSnapshot) -> Counter[str]:
         print(f"{path_nodes=} {waypoint_nodes=}")
     return counter
 
+
 def find_critical_nodes(parsed_snapshot: ParsedSnapshot) -> Counter[str]:
     counter: Counter[str] = Counter()
     raise NotImplementedError("TODO: implement find_critical_nodes")

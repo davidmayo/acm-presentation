@@ -166,18 +166,19 @@ fig = go.Figure(
 
 img = Image.open("port.png")
 fig.add_layout_image(
-        dict(
-            # source="https://images.plot.ly/language-icons/api-home/python-logo.png",
-            source=img,
-            xref="x",
-            yref="y",
-            x=0,
-            y=1,
-            sizex=1,
-            sizey=1,
-            sizing="stretch",
-            opacity=0.1,
-            layer="below")
+    dict(
+        # source="https://images.plot.ly/language-icons/api-home/python-logo.png",
+        source=img,
+        xref="x",
+        yref="y",
+        x=0,
+        y=1,
+        sizex=1,
+        sizey=1,
+        sizing="stretch",
+        opacity=0.1,
+        layer="below",
+    )
 )
 
 # images = []
