@@ -164,7 +164,7 @@ fig = go.Figure(
 #     }
 # )
 
-img = Image.open("/home/dmayo/dev/playground/acm-presentation/port.png")
+img = Image.open("port.png")
 fig.add_layout_image(
         dict(
             # source="https://images.plot.ly/language-icons/api-home/python-logo.png",

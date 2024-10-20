@@ -49,7 +49,7 @@ def find_all_paths(
     return paths
 
 
-def find_waypoint_nodes(parsed_snapshot: ParsedSnapshot):
+def find_waypoint_nodes(parsed_snapshot: ParsedSnapshot) -> Counter[str]:
     counter: Counter[str] = Counter()
     for serial in parsed_snapshot.parsed_logs:
         counter[serial] = 0
@@ -64,6 +64,10 @@ def find_waypoint_nodes(parsed_snapshot: ParsedSnapshot):
 
         print(f"{path_nodes=} {waypoint_nodes=}")
     return counter
+
+def find_critical_nodes(parsed_snapshot: ParsedSnapshot) -> Counter[str]:
+    counter: Counter[str] = Counter()
+    raise NotImplementedError("TODO: implement find_critical_nodes")
 
 
 if __name__ == "__main__":
