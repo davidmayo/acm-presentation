@@ -1,9 +1,10 @@
-from collections import Counter
+from collections import Counter, defaultdict
 import dataclasses
+import itertools
 import math
 import functools
 import random
-from typing import ClassVar
+from typing import ClassVar, Literal
 from collections.abc import Iterable
 
 import matplotlib.pyplot as plt
@@ -88,7 +89,11 @@ class Node:
         return hash(self.id)
 
     def add_neighbor(
-        self, *, node: "Node", weight: float, symmetric: bool = False
+        self,
+        *,
+        node: "Node",
+        weight: float,
+        symmetric: bool = False,
     ) -> None:
         """
         Add a neighbor to this node with the given weight.
@@ -107,8 +112,72 @@ class Node:
         if symmetric:
             node.neighbors[self] = weight
 
+    def is_neighbor(self, node: "Node") -> bool:
+        """
+        Check if the given node is a neighbor of this node.
+
+        Args:
+            node (Node): The node to check.
+
+        Returns:
+            bool: True if the node is a neighbor, False otherwise.
+        """
+        return node in self.neighbors
+
+
+default_colors = defaultdict(
+    lambda: "#666666",
+    **{
+        # "infrastructure": "#3cb44b",
+        "infrastructure": "#911eb4",
+        "mobile": "#42d4f4",
+        "mixed": "#9A6324",
+    },
+)
+
 
 class Graph:
+    def merge(
+        self,
+        other: "Graph",
+        *,
+        max_infrastructure_distance: float | None = None,
+        max_mobile_distance: float | None = None,
+        max_mixed_distance: float | None = None,
+        ensure_close_nodes_are_neighbors: bool = False,
+    ) -> "Graph":
+        max_infrastructure_distance = (
+            max_infrastructure_distance
+            or self.max_infrastructure_distance
+            or other.max_infrastructure_distance
+        )
+        max_mobile_distance = (
+            max_mobile_distance or self.max_mobile_distance or other.max_mobile_distance
+        )
+        max_mixed_distance = (
+            max_mixed_distance or self.max_mixed_distance or other.max_mixed_distance
+        )
+        if (
+            max_mixed_distance is None
+            and max_infrastructure_distance is not None
+            and max_mobile_distance is not None
+        ):
+            max_mixed_distance = (max_infrastructure_distance + max_mobile_distance) / 2
+
+        self_clone = self.clone()
+        other_clone = other.clone()
+
+        rv = Graph(
+            nodes=self_clone.nodes.union(other_clone.nodes),
+            max_infrastructure_distance=max_infrastructure_distance,
+            max_mobile_distance=max_mobile_distance,
+            max_mixed_distance=max_mixed_distance,
+        )
+        if ensure_close_nodes_are_neighbors:
+            rv.ensure_close_nodes_are_neighbors()
+
+        return rv
+
     @classmethod
     def random_mobile(
         cls,
@@ -129,9 +198,7 @@ class Graph:
         """
         rand = rand or random
 
-        max_distance = math.sqrt(
-            desired_neighbors / ((num_nodes - 1) * math.pi)
-        )
+        max_distance = math.sqrt(desired_neighbors / ((num_nodes - 1) * math.pi))
         # print(f"{max_distance=}")
         # exit()
 
@@ -145,17 +212,19 @@ class Graph:
             )
             for index, point in enumerate(points)
         )
-        for node in nodes:
-            for other in nodes:
-                if (
-                    node is not other
-                    and (node not in other.neighbors)
-                    and node.point.distance_to(other.point) < max_distance
-                ):
-                    node.add_neighbor(
-                        node=other, weight=node.point.distance_to(other.point)
-                    )
-        return cls(nodes=nodes)
+        # for node in nodes:
+        #     for other in nodes:
+        #         if (
+        #             node is not other
+        #             and (node not in other.neighbors)
+        #             and node.point.distance_to(other.point) < max_distance
+        #         ):
+        #             node.add_neighbor(
+        #                 node=other, weight=node.point.distance_to(other.point)
+        #             )
+        rv = cls(nodes=nodes, max_mobile_distance=max_distance)
+        rv.ensure_close_nodes_are_neighbors()
+        return rv
 
     @classmethod
     def random_infrastructure(
@@ -181,21 +250,23 @@ class Graph:
         rows = math.floor(math.sqrt(num_nodes))
         cols = math.ceil(num_nodes / rows)
 
-        row_spacing = 1.0 / (rows + 1)
-        col_spacing = 1.0 / (cols + 1)
+        row_spacing = 1.0 / (rows)
+        col_spacing = 1.0 / (cols)
 
         max_distance = max(row_spacing, col_spacing) * max_distance_multiplier
 
-        points = [
-            Point(
-                x=(col + 1) * col_spacing
-                + rand.gauss(0, position_error_sigma) * col_spacing,
-                y=(row + 1) * row_spacing
-                + rand.gauss(0, position_error_sigma) * row_spacing,
+        points = []
+        for index in range(num_nodes):
+            row = index // cols
+            col = index % cols
+            points.append(
+                Point(
+                    x=(col + 0.5) * col_spacing
+                    + rand.gauss(0, position_error_sigma) * col_spacing,
+                    y=(row + 0.5) * row_spacing
+                    + rand.gauss(0, position_error_sigma) * row_spacing,
+                )
             )
-            for row in range(rows)
-            for col in range(cols)
-        ]
 
         nodes = tuple(
             Node(
@@ -205,20 +276,58 @@ class Graph:
             )
             for index, point in enumerate(points)
         )
-        for node in nodes:
-            for other in nodes:
-                if (
-                    node is not other
-                    and (node not in other.neighbors)
-                    and node.point.distance_to(other.point) < max_distance
-                ):
-                    node.add_neighbor(
-                        node=other, weight=node.point.distance_to(other.point)
-                    )
-        return cls(nodes=nodes)
+        # for node in nodes:
+        #     for other in nodes:
+        #         if (
+        #             node is not other
+        #             and (node not in other.neighbors)
+        #             and node.point.distance_to(other.point) < max_distance
+        #         ):
+        #             node.add_neighbor(
+        #                 node=other,
+        #                 weight=node.point.distance_to(other.point),
+        #                 symmetric=True,
+        #             )
 
-    def __init__(self, nodes: Iterable[Node] = ()):
+        rv = cls(
+            nodes=nodes,
+            max_infrastructure_distance=max_distance,
+        )
+        rv.ensure_close_nodes_are_neighbors()
+        return rv
+
+    def __init__(
+        self,
+        *,
+        nodes: Iterable[Node] = (),
+        max_infrastructure_distance: float | None = None,
+        max_mobile_distance: float | None = None,
+        max_mixed_distance: float | None = None,
+    ):
         self.nodes = set(nodes)
+        self.max_infrastructure_distance = max_infrastructure_distance
+        self.max_mobile_distance = max_mobile_distance
+        self.max_mixed_distance = max_mixed_distance
+
+    def ensure_close_nodes_are_neighbors(self, weight: float = 1) -> None:
+        """Ensure that nodes that are close together are neighbors with the given weight."""
+        for node1, node2 in itertools.combinations(self.nodes, 2):
+            distance = node1.point.distance_to(node2.point)
+            if node1.infrastructure and node2.infrastructure:
+                max_distance = self.max_infrastructure_distance
+            elif not node1.infrastructure and not node2.infrastructure:
+                max_distance = self.max_mobile_distance
+            else:
+                max_distance = self.max_mixed_distance
+
+            if max_distance is not None and distance < max_distance:
+                if node1.is_neighbor(node2):
+                    continue
+                node1.add_neighbor(
+                    node=node2,
+                    weight=weight,
+                    symmetric=True,
+                )
 
     def add_node(self, node: Node) -> None:
         """
@@ -238,6 +347,31 @@ class Graph:
         """
         self.nodes.discard(node)
 
+    def clone(self) -> "Graph":
+        """
+        Create a deep copy of the graph.
+
+        Returns:
+            Graph: A new Graph object that is a deep copy of the current graph.
+        """
+        new_nodes = {
+            node: Node(
+                point=node.point, name=node.name, infrastructure=node.infrastructure
+            )
+            for node in self.nodes
+        }
+        for node in self.nodes:
+            for neighbor, weight in node.neighbors.items():
+                new_nodes[node].add_neighbor(
+                    node=new_nodes[neighbor], weight=weight, symmetric=False
+                )
+        return Graph(
+            nodes=new_nodes.values(),
+            max_infrastructure_distance=self.max_infrastructure_distance,
+            max_mobile_distance=self.max_mobile_distance,
+            max_mixed_distance=self.max_mixed_distance,
+        )
+
     def __iter__(self):
         return iter(self.nodes)
 
@@ -253,6 +387,21 @@ class Graph:
         ax: plt.Axes | None = None,
         fig: plt.Figure | None = None,
         show: bool = True,
+        plot_edges: bool = True,
+        show_annotations: bool = True,
+        override_color: str | None = None,
+        include_nodes: tuple[Literal["infrastructure", "mobile", "mixed"]] = (
+            "infrastructure",
+            "mobile",
+            "mixed",
+            "node",
+        ),
+        include_edges: tuple[Literal["infrastructure", "mobile", "mixed"]] = (
+            "infrastructure",
+            "mobile",
+            "mixed",
+            "edge",
+        ),
     ) -> tuple[plt.Figure, plt.Axes]:
         """
         Create a scatterplot of the nodes using matplotlib.
@@ -261,6 +410,8 @@ class Graph:
             ax (plt.Axes | None, optional): A matplotlib Axes instance to plot on. Defaults to None.
             fig (plt.Figure | None, optional): A matplotlib Figure instance to plot on. Defaults to None.
             show (bool, optional): Whether to display the plot. Defaults to True.
+            plot_edges (bool, optional): Whether to plot edges between nodes. Defaults to True.
+            show_annotations (bool, optional): Whether to show annotations for the nodes. Defaults to True.
 
         Returns:
             tuple[plt.Figure, plt.Axes]: The matplotlib figure and axes objects.
@@ -280,41 +431,56 @@ class Graph:
         if ax is None:
             fig, ax = plt.subplots(constrained_layout=True)
 
-        # Plot lines for neighbors
+        # Plot lines for neighbors if plot_edges is True
         edge_counter = Counter()
         node_counter = Counter()
         for node in self.nodes:
-            node_kind = "infra" if node.infrastructure else "mobile"
-            node_counter[node_kind] += 1
-            if node_kind == "infra":
-                node_color = "#000000"
-            else:
-                node_color = "#ff0000"
-            ax.scatter(node.point.x, node.point.y, color=node_color)
+            node_kind = "node"
 
-            for neighbor, weight in node.neighbors.items():
-                if node.infrastructure and neighbor.infrastructure:
-                    edge_kind = "infra-infra"
-                    edge_color = "#000000"
-                elif not node.infrastructure and not neighbor.infrastructure:
-                    edge_kind = "mobile-mobile"
-                    edge_color = "#ff0000"
-                else:
-                    edge_kind = "mobile-infra"
-                    edge_color = "#00ff00"
-                edge_counter[edge_kind] += 1
-                ax.plot(
-                    [node.point.x, neighbor.point.x],
-                    [node.point.y, neighbor.point.y],
-                    color=edge_color,
-                    alpha=0.1,
+            if node.infrastructure:
+                node_kind = "infrastructure"
+            elif node.infrastructure is False:
+                node_kind = "mobile"
+
+            node_counter[node_kind] += 1
+            node_color = override_color or default_colors[node_kind]
+            if node_kind in include_nodes:
+                ax.scatter(
+                    node.point.x,
+                    node.point.y,
+                    color=node_color,
+                    s=25,
                 )
 
-        for i, label in enumerate(labels):
-            ax.annotate(label, (xs[i], ys[i]))
+            if plot_edges:
+                for neighbor, weight in node.neighbors.items():
+                    if node.infrastructure is None or neighbor.infrastructure is None:
+                        edge_kind = "edge"
+                    elif node.infrastructure and neighbor.infrastructure:
+                        edge_kind = "infrastructure"
+                    elif not node.infrastructure and not neighbor.infrastructure:
+                        edge_kind = "mobile"
+                    else:
+                        edge_kind = "mixed"
+                    edge_color = override_color or default_colors[edge_kind]
+                    edge_counter[edge_kind] += 1
+                    if edge_kind in include_edges:
+                        ax.plot(
+                            [node.point.x, neighbor.point.x],
+                            [node.point.y, neighbor.point.y],
+                            color=edge_color,
+                            # alpha=0.15,
+                            alpha=0.2,
+                            linewidth=1.5,
+                            zorder=-1,
+                        )
 
-        ax.set_xlabel("X Coordinate")
-        ax.set_ylabel("Y Coordinate")
+        if show_annotations:
+            for i, label in enumerate(labels):
+                ax.annotate(label, (xs[i], ys[i]))
+
+        # ax.set_xlabel("X Coordinate")
+        # ax.set_ylabel("Y Coordinate")
         ax.set_title(
             f"nodes={len(self.nodes):,}, edges={sum(edge_counter.values()):,}\n"
             + "Nodes: "
@@ -322,7 +488,10 @@ class Graph:
             + "\nEdges: "
             + ", ".join(f"{key!r}={value:,}" for key, value in edge_counter.items())
         )
-
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xticks([])
+        ax.set_yticks([])
         if show:
             plt.show()
 
@@ -335,18 +504,6 @@ if __name__ == "__main__":
     from rich.pretty import pprint
 
     pprint(sorted(points))
-
-    # xs = [point.x for point in points]
-    # ys = [point.y for point in points]
-    # label = [f"points[{index}] {points[index].x:.2f}, {points[index].y:.2f}" for index in range(len(points))]
-
-    # import matplotlib.pyplot as plt
-    # plt.scatter(xs, ys)
-    # plt.legend()
-    # for index, label in enumerate(label):
-    #     plt.annotate(label, (xs[index], ys[index]))
-    # plt.show()
-
     node1 = Node(point=Point(0, 0))
 
     node2 = Node(point=Point(1, 1))
@@ -356,16 +513,110 @@ if __name__ == "__main__":
     print(f"{node1=}")
     print(f"{node2=}")
 
-    infra_graph = Graph.random_infrastructure(25, rand=rand)
-    mobile_graph = Graph.random_mobile(
-        100,
+    infra_graph = Graph.random_infrastructure(
+        num_nodes=25,
         rand=rand,
-        # desired_neighbors=10,
+        # position_error_sigma=0.15,
+        position_error_sigma=0.05,
+        max_distance_multiplier=2.1,
     )
+    mobile_graph = Graph.random_mobile(
+        num_nodes=125,
+        rand=rand,
+        desired_neighbors=3,
+    )
+    merged_graph = infra_graph.merge(
+        mobile_graph,
+        ensure_close_nodes_are_neighbors=True,
+    )
+    monochrome_graph = merged_graph.clone()
+    for node in monochrome_graph:
+        node.infrastructure = None
+
     graph = infra_graph
-    # graph = mobile_graph
+    graph = mobile_graph
+    graph = merged_graph
     for index, node in enumerate(graph):
         print(f"{index=}, ", end="")
         pprint(node)
 
-    graph.plot()
+    fig, [[ax_all, ax_mixed], [ax_infra, ax_mobile]] = plt.subplots(
+        2, 2, layout="constrained"
+    )
+
+    ax_all: plt.Axes
+    ax_mixed: plt.Axes
+    ax_infra: plt.Axes
+    ax_mobile: plt.Axes
+
+    override_color = "#000000"
+    merged_graph.plot(
+        # plot_edges=False,
+        fig=fig,
+        ax=ax_all,
+        show_annotations=False,
+        show=False,
+        override_color=override_color,
+        include_edges=(
+            "mixed",
+            "infrastructure",
+            "mobile",
+        ),
+        include_nodes=(
+            "infrastructure",
+            "mobile",
+        ),
+    )
+    merged_graph.plot(
+        # plot_edges=False,
+        fig=fig,
+        ax=ax_mixed,
+        show_annotations=False,
+        show=False,
+        # override_color=override_color,
+        include_edges=("mixed",),
+        include_nodes=(
+            "infrastructure",
+            "mobile",
+        ),
+    )
+    merged_graph.plot(
+        # plot_edges=False,
+        fig=fig,
+        ax=ax_infra,
+        show_annotations=False,
+        show=False,
+        # override_color=override_color,
+        include_edges=(
+            # "mixed",
+            "infrastructure",
+            # "mobile",
+        ),
+        include_nodes=(
+            "infrastructure",
+            "mobile",
+        ),
+    )
+    merged_graph.plot(
+        # plot_edges=False,
+        fig=fig,
+        ax=ax_mobile,
+        show_annotations=False,
+        show=False,
+        # override_color=override_color,
+        include_edges=(
+            # "mixed",
+            # "infrastructure",
+            "mobile",
+        ),
+        include_nodes=(
+            "infrastructure",
+            "mobile",
+        ),
+    )
+    ax_all.set_title("FULL MESH\n" + ax_all.get_title().splitlines()[0])
+    ax_infra.set_title("INFRASTRUCTURE EDGES\n" + ax_infra.get_title())
+    ax_mobile.set_title("MOBILE EDGES\n" + ax_mobile.get_title())
+    ax_mixed.set_title("MIXED EDGES\n" + ax_mixed.get_title())
+    # ax_monochrome.remove()
+    plt.show()

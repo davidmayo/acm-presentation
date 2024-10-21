@@ -176,7 +176,7 @@ fig.add_layout_image(
         sizex=1,
         sizey=1,
         sizing="stretch",
-        opacity=0.1,
+        opacity=0.3,
         layer="below",
     )
 )
