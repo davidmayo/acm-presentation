@@ -4,6 +4,7 @@ import random
 from matplotlib import pyplot as plt
 import networkx as nx
 
+from graph import Graph, Node, Point
 from parsed_log import InstameshRoutingTableEntry, ParsedLog
 
 
@@ -18,6 +19,42 @@ class ParsedSnapshot:
             if not serial:
                 continue
             self.parsed_logs[serial] = parsed_log
+
+    def graph(
+        self,
+        positions: dict[str, tuple[float, float]] | None = None
+    ) -> Graph:
+        graph = Graph()
+        for serial in self.parsed_logs:
+            if positions:
+                point = Point(*positions[serial])
+            else:
+                point = Point(0.5, 0.5)
+            graph.add_node(Node(
+                point = point,
+                name=serial,
+                infrastructure=True,
+            ))
+        for serial, parsed_log in self.parsed_logs.items():
+            for neighbor_serial, instamesh_neighbor_entry in parsed_log.instamesh_neighbors.items():
+                this_node = graph.get(serial)
+                neighbor_node = graph.get(neighbor_serial)
+
+                if neighbor_node in this_node.neighbors:
+                    continue
+
+                if instamesh_neighbor_entry.cost is None:
+                    weight = 1
+                else:
+                    weight = instamesh_neighbor_entry.cost
+                this_node.add_neighbor(
+                    node=neighbor_node,
+                    weight=weight,
+                    symmetric=True,
+                )
+                pass
+                # graph.add_edge(serial, neighbor_serial)
+        return graph
 
     def networkx_graph(self) -> nx.Graph:
         graph = nx.Graph()
@@ -107,3 +144,9 @@ if __name__ == "__main__":
     nx.draw_networkx(graph, pos=positions)
     plt.show()
     print(graph.nodes["R"])
+
+    graph = parsed_snapshot.graph(
+        positions=positions,
+    )
+    print(f"{graph=}")
+    graph.plot(show=True, detail=False,)

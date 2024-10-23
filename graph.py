@@ -137,6 +137,12 @@ default_colors = defaultdict(
 
 
 class Graph:
+    def get(self, name: str) -> Node:
+        for node in self.nodes:
+            if node.name == name:
+                return node
+        raise KeyError(f"No node with name {name!r} in graph.")
+
     def merge(
         self,
         other: "Graph",
@@ -402,6 +408,7 @@ class Graph:
             "mixed",
             "edge",
         ),
+        detail: bool = True,
     ) -> tuple[plt.Figure, plt.Axes]:
         """
         Create a scatterplot of the nodes using matplotlib.
@@ -481,13 +488,18 @@ class Graph:
 
         # ax.set_xlabel("X Coordinate")
         # ax.set_ylabel("Y Coordinate")
-        ax.set_title(
-            f"nodes={len(self.nodes):,}, edges={sum(edge_counter.values()):,}\n"
-            + "Nodes: "
-            + ", ".join(f"{key!r}={value:,}" for key, value in node_counter.items())
-            + "\nEdges: "
-            + ", ".join(f"{key!r}={value:,}" for key, value in edge_counter.items())
-        )
+        if detail:
+            ax.set_title(
+                f"nodes={len(self.nodes):,}, edges={sum(edge_counter.values()):,}\n"
+                + "Nodes: "
+                + ", ".join(f"{key!r}={value:,}" for key, value in node_counter.items())
+                + "\nEdges: "
+                + ", ".join(f"{key!r}={value:,}" for key, value in edge_counter.items())
+            )
+        else:
+            ax.set_title(
+                f"nodes={len(self.nodes):,}, edges={sum(edge_counter.values()):,}"
+            )
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         ax.set_xticks([])
