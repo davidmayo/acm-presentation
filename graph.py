@@ -79,12 +79,15 @@ class Node:
 
     __next_id: ClassVar[int] = 0
 
-    def clone(self, include_neighbors: bool = True,) -> "Node":
+    def clone(
+        self,
+        include_neighbors: bool = True,
+    ) -> "Node":
         new_node = Node(
             id=self.id,
             point=self.point,
             name=self.name,
-            infrastructure=self.infrastructure
+            infrastructure=self.infrastructure,
         )
         if include_neighbors:
             new_node.neighbors = self.neighbors[:]
@@ -100,7 +103,7 @@ class Node:
 
     def __hash__(self):
         return hash(self.id)
-    
+
     def __eq__(self, other: "Node") -> bool:
         return self.id == other.id
 
@@ -125,14 +128,18 @@ class Node:
         Raises:
             ValueError: If the node is already a neighbor.
         """
-        if node in self.neighbors:
-            raise ValueError(f"Node {node.name} is already a neighbor.")
+        # if node in self.neighbors:
+        #     return
+        #     # raise ValueError(f"Node {node.name} is already a neighbor.")
         self.neighbors[node] = weight
-        print(f"[add_neighbor DEBUG] Added {node.name!r} as neighbor of {self.name!r}")
-        if symmetric:
-            node.neighbors[self] = weight
-            print(f"[add_neighbor DEBUG] Added {self.name!r} as neighbor of {node.name!r} (sym)")
+        # print(f"[add_neighbor DEBUG] Added {node.name!r} as neighbor of {self.name!r}")
 
+        if symmetric:
+            node.add_neighbor(node=self, weight=weight, symmetric=False)
+            # node.neighbors[self] = weight
+            # print(
+            #     f"[add_neighbor DEBUG] Added {self.name!r} as neighbor of {node.name!r} (sym)"
+            # )
 
     def is_neighbor(self, node: "Node") -> bool:
         """
@@ -343,8 +350,8 @@ class Graph:
             for node in self.node_list():
                 for neighbor in node.neighbors:
                     yield (node, neighbor)
-        return list(impl())
 
+        return list(impl())
 
     def node_list(self) -> list[Node]:
         return sorted(self.nodes)
@@ -386,6 +393,32 @@ class Graph:
             node (Node): The node to remove.
         """
         self.nodes.discard(node)
+
+    def add_edge(
+        self,
+        start: Node,
+        end: Node,
+        weight: float = 1,
+        symmetric: bool = True,
+    ) -> None:
+        """
+        Add an edge between two nodes with the given weight.
+
+        Args:
+            node1 (Node): The first node.
+            node2 (Node): The second node.
+            weight (float, optional): The weight of the edge. Defaults to 1.
+            symmetric (bool, optional): If True, add the edge in both directions. Defaults to True.
+        """
+        if start not in self.nodes:
+            self.add_node(start)
+        if end not in self.nodes:
+            self.add_node(end)
+        start.add_neighbor(
+            node=end,
+            weight=weight,
+            symmetric=symmetric,
+        )
 
     def clone(self) -> "Graph":
         """
