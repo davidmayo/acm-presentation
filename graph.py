@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 @functools.total_ordering
-@dataclasses.dataclass(frozen=True, unsafe_hash=True)
+@dataclasses.dataclass(frozen=False, unsafe_hash=True)
 class Point:
     """
     A class to represent a point in 2D space.
@@ -27,10 +27,24 @@ class Point:
             Compares this point with another point for ordering based on y-coordinate, then x-coordinate.
         __eq__(self, other: 'Point') -> bool:
             Checks if this point is equal to another point based on x and y coordinates.
+        __mul__(self, scalar: float) -> 'Point':
+            Multiplies the coordinates of this point by a scalar.
+        scale(self, origin: 'Point', scale: float) -> 'Point':
+            Creates a new point, scaled from the given origin by the given scale.
     """
 
     x: float
     y: float
+
+    def __post_init__(self):
+        if self.x < 0:
+            self.x = 0
+        elif self.x > 1:
+            self.x = 1
+        if self.y < 0:
+            self.y = 0
+        elif self.y > 1:
+            self.y = 1
 
     @classmethod
     def random_point(
@@ -64,6 +78,25 @@ class Point:
 
     def __eq__(self, other: "Point") -> bool:
         return (self.x, self.y) == (other.x, other.y)
+
+    def __mul__(self, scalar: float) -> "Point":
+        return Point(self.x * scalar, self.y * scalar)
+
+    def scale(self, origin: "Point", scale: float) -> "Point":
+        """
+        Create a new point, scaled from the given origin by the given scale.
+
+        Args:
+            origin (Point): The origin point to scale from.
+            scale (float): The scale factor.
+
+        Returns:
+            Point: A new Point object that is scaled from the origin.
+        """
+        return Point(
+            x=origin.x + (self.x - origin.x) * scale,
+            y=origin.y + (self.y - origin.y) * scale,
+        )
 
 
 @functools.total_ordering
@@ -105,6 +138,8 @@ class Node:
         return hash(self.id)
 
     def __eq__(self, other: "Node") -> bool:
+        if not isinstance(other, Node):
+            return False
         return self.id == other.id
 
     def __lt__(self, other: "Node") -> bool:
@@ -166,11 +201,10 @@ default_colors = defaultdict(
 
 
 class Graph:
-    def get(self, name: str) -> Node:
+    def get(self, name: str) -> Node | None:
         for node in self.nodes:
             if node.name == name:
                 return node
-        raise KeyError(f"No node with name {name!r} in graph.")
 
     def merge(
         self,
@@ -577,9 +611,58 @@ class Graph:
         return fig, ax
 
 
+_rand = random.Random(40351)
+
+
+realistic_dense_mesh = Graph.random_infrastructure(
+    num_nodes=25,
+    rand=_rand,
+    # position_error_sigma=0.15,
+    position_error_sigma=0.05,
+    max_distance_multiplier=2.1,
+).merge(
+    Graph.random_mobile(
+        num_nodes=125,
+        rand=_rand,
+        desired_neighbors=3,
+    ),
+    ensure_close_nodes_are_neighbors=True,
+)
+
+
+realistic_medium_mesh = Graph.random_infrastructure(
+    num_nodes=16,
+    rand=_rand,
+    position_error_sigma=0.15,
+    # position_error_sigma=0.05,
+    max_distance_multiplier=1.9,
+).merge(
+    Graph.random_mobile(
+        num_nodes=50,
+        rand=_rand,
+        desired_neighbors=1.5,
+    ),
+    ensure_close_nodes_are_neighbors=True,
+)
+
+realistic_sparse_mesh = Graph.random_infrastructure(
+    num_nodes=9,
+    rand=_rand,
+    position_error_sigma=0.30,
+    # position_error_sigma=0.05,
+    max_distance_multiplier=1.4,
+).merge(
+    Graph.random_mobile(
+        num_nodes=30,
+        rand=_rand,
+        desired_neighbors=1.5,
+    ),
+    ensure_close_nodes_are_neighbors=True,
+)
+
+
 if __name__ == "__main__":
-    rand = random.Random(40351)
-    points = [Point.random_point(rand=rand) for _ in range(10)]
+    points = [Point.random_point(rand=_rand) for _ in range(10)]
     from rich.pretty import pprint
 
     pprint(sorted(points))
@@ -592,29 +675,13 @@ if __name__ == "__main__":
     print(f"{node1=}")
     print(f"{node2=}")
 
-    infra_graph = Graph.random_infrastructure(
-        num_nodes=25,
-        rand=rand,
-        # position_error_sigma=0.15,
-        position_error_sigma=0.05,
-        max_distance_multiplier=2.1,
-    )
-    mobile_graph = Graph.random_mobile(
-        num_nodes=125,
-        rand=rand,
-        desired_neighbors=3,
-    )
-    merged_graph = infra_graph.merge(
-        mobile_graph,
-        ensure_close_nodes_are_neighbors=True,
-    )
-    monochrome_graph = merged_graph.clone()
+    monochrome_graph = realistic_dense_mesh.clone()
     for node in monochrome_graph:
         node.infrastructure = None
 
-    graph = infra_graph
-    graph = mobile_graph
-    graph = merged_graph
+    graph = realistic_dense_mesh
+    graph = realistic_medium_mesh
+    graph = realistic_sparse_mesh
     for index, node in enumerate(graph):
         print(f"{index=}, ", end="")
         pprint(node)
@@ -629,7 +696,7 @@ if __name__ == "__main__":
     ax_mobile: plt.Axes
 
     override_color = "#000000"
-    merged_graph.plot(
+    graph.plot(
         # plot_edges=False,
         fig=fig,
         ax=ax_all,
@@ -646,7 +713,7 @@ if __name__ == "__main__":
             "mobile",
         ),
     )
-    merged_graph.plot(
+    graph.plot(
         # plot_edges=False,
         fig=fig,
         ax=ax_mixed,
@@ -659,7 +726,7 @@ if __name__ == "__main__":
             "mobile",
         ),
     )
-    merged_graph.plot(
+    graph.plot(
         # plot_edges=False,
         fig=fig,
         ax=ax_infra,
@@ -676,7 +743,7 @@ if __name__ == "__main__":
             "mobile",
         ),
     )
-    merged_graph.plot(
+    graph.plot(
         # plot_edges=False,
         fig=fig,
         ax=ax_mobile,
