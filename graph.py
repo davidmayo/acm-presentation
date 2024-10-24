@@ -66,9 +66,10 @@ class Point:
         return (self.x, self.y) == (other.x, other.y)
 
 
+@functools.total_ordering
 @dataclasses.dataclass(kw_only=True)
 class Node:
-    id: int = dataclasses.field(init=False, repr=True)
+    id: int | None = dataclasses.field(default=None, repr=True)
     point: Point
     name: str = dataclasses.field(default=None)
     infrastructure: bool = False
@@ -78,21 +79,39 @@ class Node:
 
     __next_id: ClassVar[int] = 0
 
+    def clone(self, include_neighbors: bool = True,) -> "Node":
+        new_node = Node(
+            id=self.id,
+            point=self.point,
+            name=self.name,
+            infrastructure=self.infrastructure
+        )
+        if include_neighbors:
+            new_node.neighbors = self.neighbors[:]
+        return new_node
+
     def __post_init__(self):
-        self.id = Node.__next_id
-        Node.__next_id += 1
+        if self.id is None:
+            self.id = Node.__next_id
+            Node.__next_id += 1
 
         if self.name is None:
             self.name = f"node-{self.id:03}"
 
     def __hash__(self):
         return hash(self.id)
+    
+    def __eq__(self, other: "Node") -> bool:
+        return self.id == other.id
+
+    def __lt__(self, other: "Node") -> bool:
+        return self.id < other.id
 
     def add_neighbor(
         self,
         *,
         node: "Node",
-        weight: float,
+        weight: float = 1,
         symmetric: bool = False,
     ) -> None:
         """
@@ -109,8 +128,11 @@ class Node:
         if node in self.neighbors:
             raise ValueError(f"Node {node.name} is already a neighbor.")
         self.neighbors[node] = weight
+        print(f"[add_neighbor DEBUG] Added {node.name!r} as neighbor of {self.name!r}")
         if symmetric:
             node.neighbors[self] = weight
+            print(f"[add_neighbor DEBUG] Added {self.name!r} as neighbor of {node.name!r} (sym)")
+
 
     def is_neighbor(self, node: "Node") -> bool:
         """
@@ -314,6 +336,18 @@ class Graph:
         self.max_infrastructure_distance = max_infrastructure_distance
         self.max_mobile_distance = max_mobile_distance
         self.max_mixed_distance = max_mixed_distance
+
+    @property
+    def edges(self) -> list[tuple[Node, Node]]:
+        def impl():
+            for node in self.node_list():
+                for neighbor in node.neighbors:
+                    yield (node, neighbor)
+        return list(impl())
+
+
+    def node_list(self) -> list[Node]:
+        return sorted(self.nodes)
 
     def ensure_close_nodes_are_neighbors(self, weight: float = 1) -> None:
         """Ensure that nodes that are close together are neighbors with the given weight."""
