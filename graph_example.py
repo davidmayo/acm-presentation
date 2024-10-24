@@ -1,4 +1,6 @@
 from collections import Counter
+import itertools
+import math
 from matplotlib import pyplot as plt
 from rich.pretty import pprint
 
@@ -7,6 +9,31 @@ from analyze_graph import dfs, find_articulation_points
 
 
 if __name__ == "__main__":
+
+    def circle_points(center: Point, radius: float, num_points: int) -> list[Point]:
+        points = []
+        for i in range(num_points):
+            angle = 2 * 3.14159 * i / num_points
+            x = center.x + radius * math.cos(angle)
+            y = center.y + radius * math.sin(angle)
+            points.append(Point(x, y))
+        return points
+
+    nodes = [
+        Node(point=point, name=str(index))
+        for index, point in enumerate(
+            circle_points(center=Point(0.5, 0.5), radius=0.4, num_points=12)
+        )
+    ]
+
+    graph = Graph(nodes=nodes)
+    for node1, node2 in zip(nodes, nodes[1:]):
+        graph.add_edge(node1, node2, symmetric=False)
+    # for node1, node2 in itertools.combinations(nodes, 2):
+    #     graph.add_edge(node1, node2, symmetric=False)
+    graph.plot(detail=False, override_color="#000000")
+
+    exit()
     node_c = Node(name="C", point=Point(0.5, 0.6), infrastructure=True)
     node_a = Node(name="A", point=Point(0.3, 0.9), infrastructure=True)
     node_b = Node(name="B", point=Point(0.7, 0.9), infrastructure=True)
@@ -20,7 +47,6 @@ if __name__ == "__main__":
         node_d,
         node_e,
         node_f,
-
     ]
     # nodes = [
     #     Node(name="node-3", point=Point(0.5, 0.6), infrastructure=True),
@@ -54,17 +80,13 @@ if __name__ == "__main__":
     dfs_tree = dfs(graph=graph, start=graph.node_list()[1])
     dfs_tree.plot(override_color="red")
 
-
     new_tree = dfs_tree.clone()
     depth_counter = Counter()
     for node in new_tree.nodes:
         depth = int(node.name[-2])  # HACK
         depth_counter[depth] += 1
         print(f"{node.name=} {depth=}")
-        node.point = Point(
-            x=depth_counter[depth] / 3,
-            y=0.9 - depth / 5
-        )
+        node.point = Point(x=depth_counter[depth] / 3, y=0.9 - depth / 5)
     fig, ax = new_tree.plot(
         show=False,
         override_color="black",
@@ -77,7 +99,6 @@ if __name__ == "__main__":
         [node_a.point.x, 0.25, node_b.point.x],
         [node_a.point.y, 0.7, node_b.point.y],
         color="red",
-
     )
     ax.plot(
         [node_d.point.x, node_f.point.x],

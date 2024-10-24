@@ -606,10 +606,9 @@ class Graph:
         ax.set_ylim(0, 1)
         ax.set_xticks([])
         ax.set_yticks([])
-        
 
         if highlight_nodes:
-            # xs = 
+            # xs =
             for highlight_node in highlight_nodes:
                 # print(f"DEBUG: Highlighting {highlight_node.point}")
                 # ax.scatter(xs, ys, color="#ff000040", s=500, zorder=10)
@@ -620,7 +619,6 @@ class Graph:
                     color="#ff000040",
                     zorder=10,
                 )
-
 
         if show:
             plt.show()
@@ -696,8 +694,8 @@ if __name__ == "__main__":
         node.infrastructure = None
 
     graph = realistic_dense_mesh
-    graph = realistic_medium_mesh
-    graph = realistic_sparse_mesh
+    # graph = realistic_medium_mesh
+    # graph = realistic_sparse_mesh
     for index, node in enumerate(graph):
         print(f"{index=}, ", end="")
         pprint(node)
