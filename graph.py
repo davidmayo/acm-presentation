@@ -510,6 +510,7 @@ class Graph:
             "edge",
         ),
         detail: bool = True,
+        highlight_nodes: Iterable[Node] | None = None,
     ) -> tuple[plt.Figure, plt.Axes]:
         """
         Create a scatterplot of the nodes using matplotlib.
@@ -605,9 +606,24 @@ class Graph:
         ax.set_ylim(0, 1)
         ax.set_xticks([])
         ax.set_yticks([])
+        
+
+        if highlight_nodes:
+            # xs = 
+            for highlight_node in highlight_nodes:
+                # print(f"DEBUG: Highlighting {highlight_node.point}")
+                # ax.scatter(xs, ys, color="#ff000040", s=500, zorder=10)
+                ax.scatter(
+                    [highlight_node.point.x],
+                    [highlight_node.point.y],
+                    s=500,
+                    color="#ff000040",
+                    zorder=10,
+                )
+
+
         if show:
             plt.show()
-
         return fig, ax
 
 

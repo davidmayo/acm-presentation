@@ -244,121 +244,135 @@ if __name__ == "__main__":
     from pathlib import Path
     from rich.pretty import pprint
 
-    parsed_snapshot = ParsedSnapshot(Path(__file__).parent / "logs")
-    graph = parsed_snapshot.graph(positions=visualize.positions)
-    graph.plot(
-        show=True,
-        detail=False,
-    )
-
-    dfs_tree = dfs(graph, graph.node_list()[0])
-    for index, edge in enumerate(dfs_tree.edges):
-        print(f"{index=} {edge[0].name!r} -> {edge[1].name!r}")
-
-    # for index, node in enumerate(dfs_tree.node_list()):
-    #     print(f"node[{index}]: {node} {len(node.neighbors)=}")
-    #     for neighbor_index, neighbor in enumerate(node.neighbors):
-    #         print(f"  neighbors[{neighbor_index}] {neighbor}")
-    # print("edges:")
-    # for index, (start, end) in enumerate(dfs_tree.edges):
-    #     print(f"{index=} {start.name!r}->{end.name!r}")
-    print(f"{dfs_tree=}")
-    # for index, node in enumerate(dfs_tree):
-    #     print(f"{index=} {node.name=}")
-
-    for index, edge in enumerate(dfs_tree.edges):
-        print(f"{index=} {edge[0].name!r} -> {edge[1].name!r}")
-    dfs_tree.plot(
-        show=True,
-    )
-    print("NODES:")
-    for index, node in enumerate(dfs_tree.node_list()):
-        print(f"{index=} {node.name=}")
-    # waypoint_nodes = find_waypoint_nodes(parsed_snapshot)
-    # print(f"waypoint_nodes=")
-    # pprint(waypoint_nodes)
-
-    graph = realistic_dense_mesh
+    # parsed_snapshot = ParsedSnapshot(Path(__file__).parent / "logs")
+    # graph = parsed_snapshot.graph(positions=visualize.positions)
     # graph.plot(
     #     show=True,
+    #     detail=False,
     # )
 
-    articulation_points = find_articulation_points(graph)
-    print(f"points=")
-    pprint(articulation_points)
-    root = graph.node_list()[0]
-    dfs_tree = dfs(graph, root)
-    fig, ax = dfs_tree.plot(
-        # show_annotations=False,
-        detail=False,
-        override_color="black",
-        show=False,
-    )
-    ax.scatter(root.point.x, root.point.y, color="red", s=500, zorder=10)
-    plt.show()
+    # dfs_tree = dfs(graph, graph.node_list()[0])
+    # for index, edge in enumerate(dfs_tree.edges):
+    #     print(f"{index=} {edge[0].name!r} -> {edge[1].name!r}")
 
-    def circle_points(center: Point, radius: float, num_points: int) -> list[Point]:
-        points = []
-        for i in range(num_points):
-            angle = 2 * 3.14159 * i / num_points
-            x = center.x + radius * math.cos(angle)
-            y = center.y + radius * math.sin(angle)
-            points.append(Point(x, y))
-        return points
+    # # for index, node in enumerate(dfs_tree.node_list()):
+    # #     print(f"node[{index}]: {node} {len(node.neighbors)=}")
+    # #     for neighbor_index, neighbor in enumerate(node.neighbors):
+    # #         print(f"  neighbors[{neighbor_index}] {neighbor}")
+    # # print("edges:")
+    # # for index, (start, end) in enumerate(dfs_tree.edges):
+    # #     print(f"{index=} {start.name!r}->{end.name!r}")
+    # print(f"{dfs_tree=}")
+    # # for index, node in enumerate(dfs_tree):
+    # #     print(f"{index=} {node.name=}")
 
-    graph = Graph()
-    center_points = circle_points(Point(0.5, 0.5), 0.25, 4)
-    center_nodes = [Node(point=point) for point in center_points]
-    for node1, node2 in itertools.combinations(center_nodes, r=2):
-        graph.add_edge(node1, node2)
-
-    for center_point, center_node in zip(center_points, center_nodes):
-        outer_points = circle_points(center_point.scale(Point(0.5, 0.5), 1.5), 0.075, 6)
-        outer_nodes = []
-        for outer_point in outer_points:
-            outer_node = Node(point=outer_point)
-            outer_nodes.append(outer_node)
-            graph.add_edge(center_node, outer_node)
-        for outer_node1, outer_node2 in itertools.combinations(outer_nodes, r=2):
-            graph.add_edge(outer_node1, outer_node2)
-
-    articulation_points = find_articulation_points(graph)
-    print(f"ARTICULATION POINTS:")
-    pprint(articulation_points)
-
-    print(f"NODES:")
-    for index, node in enumerate(graph.node_list()):
-        print(f"{index=} {node.name=}")
-
-    graph.plot(
-        show_annotations=False,
-        show=False,
-    )
-    plt.show()
-
-    dfs_tree = dfs(graph, graph.node_list()[0])
-    dfs_tree.plot(
-        show=True,
-    )
-
-    graph = realistic_sparse_mesh
-    dfs_tree = dfs(graph, graph.node_list()[0])
-    articulation_points = find_articulation_points(graph)
-    print(f"ARTICULATION POINTS:")
-    pprint(articulation_points)
-    fig, ax = graph.plot(
-        show=False,
-        # override_color="black",
-        show_annotations=False,
-    )
-    xs = [node.point.x for node in articulation_points]
-    ys = [node.point.y for node in articulation_points]
-    ax.scatter(xs, ys, color="#ff000040", s=500, zorder=10)
-    for node in articulation_points:
-        ax.text(node.point.x, node.point.y, node.name, fontsize=12)
-    plt.show()
+    # for index, edge in enumerate(dfs_tree.edges):
+    #     print(f"{index=} {edge[0].name!r} -> {edge[1].name!r}")
     # dfs_tree.plot(
     #     show=True,
-    #     # show_annotations=False,
-    #     override_color="#ff00ff",
     # )
+    # print("NODES:")
+    # for index, node in enumerate(dfs_tree.node_list()):
+    #     print(f"{index=} {node.name=}")
+    # # waypoint_nodes = find_waypoint_nodes(parsed_snapshot)
+    # # print(f"waypoint_nodes=")
+    # # pprint(waypoint_nodes)
+
+    # graph = realistic_dense_mesh
+    # # graph.plot(
+    # #     show=True,
+    # # )
+
+    # articulation_points = find_articulation_points(graph)
+    # print(f"points=")
+    # pprint(articulation_points)
+    # root = graph.node_list()[0]
+    # dfs_tree = dfs(graph, root)
+    # fig, ax = dfs_tree.plot(
+    #     # show_annotations=False,
+    #     detail=False,
+    #     override_color="black",
+    #     show=False,
+    # )
+    # ax.scatter(root.point.x, root.point.y, color="red", s=500, zorder=10)
+    # plt.show()
+
+    # def circle_points(center: Point, radius: float, num_points: int) -> list[Point]:
+    #     points = []
+    #     for i in range(num_points):
+    #         angle = 2 * 3.14159 * i / num_points
+    #         x = center.x + radius * math.cos(angle)
+    #         y = center.y + radius * math.sin(angle)
+    #         points.append(Point(x, y))
+    #     return points
+
+    # graph = Graph()
+    # center_points = circle_points(Point(0.5, 0.5), 0.25, 4)
+    # center_nodes = [Node(point=point) for point in center_points]
+    # for node1, node2 in itertools.combinations(center_nodes, r=2):
+    #     graph.add_edge(node1, node2)
+
+    # for center_point, center_node in zip(center_points, center_nodes):
+    #     outer_points = circle_points(center_point.scale(Point(0.5, 0.5), 1.5), 0.075, 6)
+    #     outer_nodes = []
+    #     for outer_point in outer_points:
+    #         outer_node = Node(point=outer_point)
+    #         outer_nodes.append(outer_node)
+    #         graph.add_edge(center_node, outer_node)
+    #     for outer_node1, outer_node2 in itertools.combinations(outer_nodes, r=2):
+    #         graph.add_edge(outer_node1, outer_node2)
+
+    # articulation_points = find_articulation_points(graph)
+    # print(f"ARTICULATION POINTS:")
+    # pprint(articulation_points)
+
+    # print(f"NODES:")
+    # for index, node in enumerate(graph.node_list()):
+    #     print(f"{index=} {node.name=}")
+
+    # graph.plot(
+    #     show_annotations=False,
+    #     show=False,
+    # )
+    # plt.show()
+
+    # dfs_tree = dfs(graph, graph.node_list()[0])
+    # dfs_tree.plot(
+    #     show=True,
+    # )
+
+    # graph = realistic_dense_mesh
+    # graph = realistic_medium_mesh
+    graph = realistic_sparse_mesh
+    dfs_tree = dfs(graph, graph.node_list()[0])
+    articulation_point_nodes = find_articulation_points(graph)
+    print(f"ARTICULATION POINTS:")
+    pprint(articulation_point_nodes)
+    fig, [ax0, ax1] = plt.subplots(1, 2)
+    ax0: plt.Axes
+    ax1: plt.Axes
+    graph.plot(
+        ax=ax0,
+        fig=fig,
+        show=False,
+        override_color="#000000",
+        show_annotations=False,
+        detail=False,
+    )
+    xs = [node.point.x for node in articulation_point_nodes]
+    ys = [node.point.y for node in articulation_point_nodes]
+    ax0.scatter(xs, ys, color="#ff000040", s=500, zorder=10)
+    ax0.set_title(
+        ax0.get_title() + f"\n{len(articulation_point_nodes)} articulation points"
+    )
+    for node in articulation_point_nodes:
+        ax0.text(node.point.x, node.point.y, node.name, fontsize=12)
+    dfs_tree.plot(
+        ax=ax1,
+        fig=fig,
+        show=False,
+        show_annotations=True,
+        override_color="#000000",
+    )
+    ax1.set_title("DFS tree")
+    plt.show()

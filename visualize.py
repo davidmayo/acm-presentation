@@ -35,7 +35,6 @@ positions = {
 }
 
 if __name__ == "__main__":
-
     graph = nx.random_geometric_graph(200, 0.125, seed=40351)
 
     snap = parsed_snapshot.ParsedSnapshot("./logs")
@@ -46,7 +45,6 @@ if __name__ == "__main__":
         graph.nodes[node]["pos"] = positions[node]
 
     # exit()
-
 
     print(graph)
 
@@ -62,10 +60,8 @@ if __name__ == "__main__":
         edge_y.append(y1)
         edge_y.append(None)
 
-
     pprint(edge_x)
     # exit()
-
 
     # fig = go.Figure()
 
@@ -113,7 +109,6 @@ if __name__ == "__main__":
     )
     # fig.add_trace(node_trace)
 
-
     node_adjacencies = []
     node_text = []
     for node, adjacencies in enumerate(graph.adjacency()):
@@ -122,7 +117,6 @@ if __name__ == "__main__":
 
     # node_trace.marker.color = node_adjacencies
     # node_trace.text = node_text
-
 
     fig = go.Figure(
         data=[
@@ -188,7 +182,6 @@ if __name__ == "__main__":
     # pprint(images)
     # image: go.Image = images[0]
 
-
     fig.update_layout(template="plotly_white")
     fig.show()
 
@@ -227,6 +220,5 @@ if __name__ == "__main__":
     #         ),
     #     ),
     # )
-
 
     # fig.show()

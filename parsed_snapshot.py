@@ -20,23 +20,25 @@ class ParsedSnapshot:
                 continue
             self.parsed_logs[serial] = parsed_log
 
-    def graph(
-        self,
-        positions: dict[str, tuple[float, float]] | None = None
-    ) -> Graph:
+    def graph(self, positions: dict[str, tuple[float, float]] | None = None) -> Graph:
         graph = Graph()
         for serial in self.parsed_logs:
             if positions:
                 point = Point(*positions[serial])
             else:
                 point = Point(0.5, 0.5)
-            graph.add_node(Node(
-                point = point,
-                name=serial,
-                infrastructure=True,
-            ))
+            graph.add_node(
+                Node(
+                    point=point,
+                    name=serial,
+                    infrastructure=True,
+                )
+            )
         for serial, parsed_log in self.parsed_logs.items():
-            for neighbor_serial, instamesh_neighbor_entry in parsed_log.instamesh_neighbors.items():
+            for (
+                neighbor_serial,
+                instamesh_neighbor_entry,
+            ) in parsed_log.instamesh_neighbors.items():
                 this_node = graph.get(serial)
                 neighbor_node = graph.get(neighbor_serial)
 
@@ -149,4 +151,7 @@ if __name__ == "__main__":
         positions=positions,
     )
     print(f"{graph=}")
-    graph.plot(show=True, detail=False,)
+    graph.plot(
+        show=True,
+        detail=False,
+    )
